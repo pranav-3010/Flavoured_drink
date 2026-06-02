@@ -1,6 +1,11 @@
 const fs = require('fs');
 const path = require('path');
 
+if (process.env.VERCEL) {
+  console.log("Vercel deployment detected. Skipping copy-frames script as frames are already checked into Git.");
+  process.exit(0);
+}
+
 const srcFolders = {
   mango: path.resolve(__dirname, '../../Mango_frames-jpg'),
   chocolate: path.resolve(__dirname, '../../Choclate_Almond_frames-jpg'),
