@@ -7,6 +7,8 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ChevronLeft, Trash2, CreditCard, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { DeliveryAddressForm } from "@/components/DeliveryAddressForm";
+import { DeliveryAddress } from "@/types/order";
 
 interface BasketItem {
   productId: string;
@@ -25,6 +27,14 @@ export default function BasketPage() {
   const [basketItems, setBasketItems] = useState<BasketItem[]>([]);
   const [selectedPayment, setSelectedPayment] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [orderSuccess, setOrderSuccess] = useState<string | null>(null);
+  const [deliveryAddress, setDeliveryAddress] = useState<DeliveryAddress>({
+    name: "",
+    phone: "",
+    address: "",
+    city: "",
+    pincode: "",
+  });
 
   // Initialize basket from localStorage or URL params
   React.useEffect(() => {
@@ -83,18 +93,58 @@ export default function BasketPage() {
 
   const { subtotal, tax, shipping, total } = calculateTotals();
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (!selectedPayment) {
       alert("Please select a payment method");
       return;
     }
+
+    if (!deliveryAddress.name || !deliveryAddress.phone || !deliveryAddress.address) {
+      alert("Please fill in all delivery address fields");
+      return;
+    }
+
     setIsProcessing(true);
-    setTimeout(() => {
-      alert(`Order placed! Payment method: ${selectedPayment}`);
+
+    try {
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          items: basketItems,
+          deliveryAddress,
+          paymentMethod: selectedPayment,
+          totalAmount: calculateTotals().total,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create order");
+      }
+
+      const order = await response.json();
+      setOrderSuccess(order.id);
       setIsProcessing(false);
-      setBasketItems([]);
-      setSelectedPayment("");
-    }, 2000);
+      
+      // Clear basket after 1 second
+      setTimeout(() => {
+        setBasketItems([]);
+        setSelectedPayment("");
+        setDeliveryAddress({
+          name: "",
+          phone: "",
+          address: "",
+          city: "",
+          pincode: "",
+        });
+      }, 1000);
+    } catch (error) {
+      console.error("Checkout error:", error);
+      alert("Failed to place order. Please try again.");
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -119,7 +169,24 @@ export default function BasketPage() {
 
       {/* Main Content */}
       <div className="flex-1 max-w-7xl w-full mx-auto px-6 md:px-12 py-12">
-        {basketItems.length === 0 ? (
+        {orderSuccess ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-green-500/10 border border-green-500/30 rounded-2xl p-8 text-center max-w-md mx-auto"
+          >
+            <div className="text-5xl mb-4">✓</div>
+            <h2 className="text-2xl font-black mb-2">Order Placed!</h2>
+            <p className="text-white/60 mb-4">Your order has been successfully created.</p>
+            <p className="text-lg font-bold text-green-400 mb-6">Order ID: {orderSuccess}</p>
+            <Link
+              href="/"
+              className="inline-block px-8 py-3 bg-white text-black font-black rounded-full hover:bg-neutral-200 transition-colors"
+            >
+              Continue Shopping
+            </Link>
+          </motion.div>
+        ) : basketItems.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -137,10 +204,11 @@ export default function BasketPage() {
           </motion.div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Basket Items - Left side */}
-            <div className="lg:col-span-2">
-              <h2 className="text-2xl font-black mb-6 uppercase">Items</h2>
-              <div className="space-y-4">
+            {/* Basket Items and Delivery Address - Left side */}
+            <div className="lg:col-span-2 space-y-8">
+              <div>
+                <h2 className="text-2xl font-black mb-6 uppercase">Items</h2>
+                <div className="space-y-4">
                 {basketItems.map((item, idx) => {
                   const product = products.find((p) => p.id === item.productId);
                   if (!product) return null;
@@ -193,6 +261,20 @@ export default function BasketPage() {
                   );
                 })}
               </div>
+              </div>
+
+              {/* Delivery Address Form */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="bg-white/5 border border-white/10 rounded-2xl p-6"
+              >
+                <DeliveryAddressForm
+                  address={deliveryAddress}
+                  onChange={setDeliveryAddress}
+                />
+              </motion.div>
             </div>
 
             {/* Payment and Checkout - Right side */}

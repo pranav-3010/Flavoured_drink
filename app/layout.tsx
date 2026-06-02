@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
 import "./globals.css";
+import { Toast } from "@/components/Toast";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -23,6 +24,7 @@ export default function RootLayout({
     <html lang="en" className={`${outfit.variable} antialiased scroll-smooth`}>
       <body className="min-h-screen text-white">
         {children}
+        <Toast />
       </body>
     </html>
   );
