@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { products } from "@/data/products";
 import Navbar from "@/components/Navbar";
@@ -20,6 +21,7 @@ import {
 } from "lucide-react";
 
 export default function Home() {
+  const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
@@ -94,8 +96,8 @@ export default function Home() {
   const handleAddToCart = () => {
     setIsAdded(true);
     setTimeout(() => {
-      setIsAdded(false);
-    }, 2000);
+      router.push(`/basket?product=${product.id}&quantity=${quantity}`);
+    }, 800);
   };
 
   return (
