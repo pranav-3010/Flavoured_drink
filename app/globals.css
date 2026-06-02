@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0f0f11;
+  --foreground: #ffffff;
+  --theme-gradient: linear-gradient(135deg, #FFB74D 0%, #FFA726 100%);
+  --theme-color: #FFB74D;
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-outfit), system-ui, sans-serif;
+}
+
+body {
+  background: var(--theme-gradient);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  transition: background 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Customize ::selection to Orange/White (bg-orange-500 text-white) */
+::selection {
+  background-color: #f97316;
+  color: #ffffff;
+}
+
+/* Custom premium scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--theme-color) 0%, #ec4899 100%);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-color);
+}
+
+/* Helper for smooth canvas image contain rendering */
+canvas {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* Smooth transitions */
+.smooth-transition {
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
