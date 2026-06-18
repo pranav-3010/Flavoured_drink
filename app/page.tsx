@@ -6,6 +6,7 @@ import { products } from "@/data/products";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProductBottleScroll from "@/components/ProductBottleScroll";
+import CartDrawer from "@/components/CartDrawer";
 import { ReactLenis } from "@studio-freight/react-lenis";
 import { 
   ChevronLeft, 
@@ -19,10 +20,21 @@ import {
   Sparkles
 } from "lucide-react";
 
+export interface CartItem {
+  id: string;
+  name: string;
+  themeColor: string;
+  price: string;
+  quantity: number;
+  folderPath: string;
+}
+
 export default function Home() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const [windowHeight, setWindowHeight] = useState(800);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -91,11 +103,56 @@ export default function Home() {
     setCurrentIndex((prev) => (prev - 1 + products.length) % products.length);
   };
 
+  const handleUpdateQuantity = (id: string, delta: number) => {
+    setCartItems((prev) =>
+      prev
+        .map((item) => {
+          if (item.id === id) {
+            const nextQuantity = item.quantity + delta;
+            return { ...item, quantity: Math.max(1, nextQuantity) };
+          }
+          return item;
+        })
+    );
+  };
+
+  const handleRemoveItem = (id: string) => {
+    setCartItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const handleClearCart = () => {
+    setCartItems([]);
+  };
+
   const handleAddToCart = () => {
+    setCartItems((prev) => {
+      const existingIdx = prev.findIndex((item) => item.id === product.id);
+      if (existingIdx > -1) {
+        const updated = [...prev];
+        updated[existingIdx].quantity += quantity;
+        return updated;
+      } else {
+        return [
+          ...prev,
+          {
+            id: product.id,
+            name: product.name,
+            themeColor: product.themeColor,
+            price: product.buyNowSection.price,
+            quantity: quantity,
+            folderPath: product.folderPath,
+          },
+        ];
+      }
+    });
+
     setIsAdded(true);
+    
+    // Automatically open the cart drawer after a short delay so the user gets interactive feedback
     setTimeout(() => {
       setIsAdded(false);
-    }, 2000);
+      setIsCartOpen(true);
+    }, 800);
   };
 
   return (
@@ -115,7 +172,7 @@ export default function Home() {
         </AnimatePresence>
 
       {/* GLOBAL NAVBAR */}
-      <Navbar />
+      <Navbar cartCount={cartItems.reduce((acc, item) => acc + item.quantity, 0)} onCartClick={() => setIsCartOpen(true)} />
 
       {/* FIXED NAVIGATION: Left & Right Arrow Buttons */}
       <button
@@ -492,6 +549,16 @@ export default function Home() {
 
         </motion.div>
       </AnimatePresence>
+
+      {/* Dynamic Basket Drawer */}
+      <CartDrawer
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        cartItems={cartItems}
+        onUpdateQuantity={handleUpdateQuantity}
+        onRemoveItem={handleRemoveItem}
+        onClearCart={handleClearCart}
+      />
     </div>
     </ReactLenis>
   );
