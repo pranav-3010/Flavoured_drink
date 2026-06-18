@@ -56,7 +56,7 @@ export const products: Product[] = [
            price: "₹120",
            unit: "per 300ml bottle",
            processingParams: ["Cold Pressed", "Never Heated", "HPP Treated"],
-           deliveryPromise: "Next-day delivery available in metro cities. Chilled packaging ensures peak freshness.",
+           deliveryPromise: "Instant delivery available! Direct from orchard pressery to your doorstep in minutes.",
            returnPolicy: "100% Satisfaction Guarantee. Not happy? We'll replace it, no questions asked."
        },
        frameCount: 192,
@@ -90,7 +90,7 @@ export const products: Product[] = [
            price: "₹140",
            unit: "per 300ml bottle",
            processingParams: ["Plant Based", "Cold Blended", "Dairy Free"],
-           deliveryPromise: "Shipped in insulated eco-friendly coolers. Keeps perfectly cold for 48 hours.",
+           deliveryPromise: "Instant delivery in progress. Delivered in insulated chill packs to maintain freshness.",
            returnPolicy: "Taste the difference or get your money back."
        },
        frameCount: 193,
@@ -124,7 +124,7 @@ export const products: Product[] = [
            price: "₹150",
            unit: "per 300ml bottle",
            processingParams: ["Cold Pressed", "Oxidation Shield", "No Additives"],
-           deliveryPromise: "Direct from the pressery to your doorstep. Guaranteed fresh upon arrival.",
+           deliveryPromise: "Instant fast-track delivery. Guaranteed fresh and cold upon arrival.",
            returnPolicy: "Damaged in transit? Instant replacement available."
        },
        frameCount: 193,

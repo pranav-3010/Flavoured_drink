@@ -15,7 +15,9 @@ import {
   User,
   MapPin,
   Phone,
-  ArrowLeft
+  ArrowLeft,
+  Smartphone,
+  Coins
 } from "lucide-react";
 import { CartItem } from "../app/page";
 
@@ -40,6 +42,14 @@ export default function CartDrawer({
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  
+  // Payment States
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "upi" | "cod">("card");
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardCvv, setCardCvv] = useState("");
+  const [upiId, setUpiId] = useState("");
+
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Calculations
@@ -57,6 +67,22 @@ export default function CartDrawer({
     if (!phone.trim()) newErrors.phone = "Phone number is required";
     else if (!/^\d{10}$/.test(phone.trim())) newErrors.phone = "Enter a valid 10-digit number";
     if (!address.trim()) newErrors.address = "Delivery address is required";
+
+    if (paymentMethod === "card") {
+      if (!cardNumber.trim() || !/^\d{16}$/.test(cardNumber.replace(/\s+/g, ""))) {
+        newErrors.cardNumber = "Enter a valid 16-digit card number";
+      }
+      if (!cardExpiry.trim() || !/^(0[1-9]|1[0-2])\/?([0-9]{2})$/.test(cardExpiry)) {
+        newErrors.cardExpiry = "Expiry date must be MM/YY";
+      }
+      if (!cardCvv.trim() || !/^\d{3}$/.test(cardCvv)) {
+        newErrors.cardCvv = "Enter a valid 3-digit CVV";
+      }
+    } else if (paymentMethod === "upi") {
+      if (!upiId.trim() || !upiId.includes("@")) {
+        newErrors.upiId = "Enter a valid UPI ID (e.g. username@upi)";
+      }
+    }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -75,6 +101,10 @@ export default function CartDrawer({
     setName("");
     setPhone("");
     setAddress("");
+    setCardNumber("");
+    setCardExpiry("");
+    setCardCvv("");
+    setUpiId("");
     setErrors({});
     onClose();
   };
@@ -107,7 +137,7 @@ export default function CartDrawer({
                   <ShoppingBag className="w-4 h-4 text-white" />
                 </div>
                 <h2 className="text-lg font-black tracking-widest text-white uppercase font-sans">
-                  {step === "cart" ? "YOUR BASKET" : step === "checkout" ? "SHIPPING DETAIL" : "SUCCESS"}
+                  {step === "cart" ? "YOUR BASKET" : step === "checkout" ? "CHECKOUT INFO" : "SUCCESS"}
                 </h2>
               </div>
               
@@ -301,7 +331,7 @@ export default function CartDrawer({
                         <div className="relative">
                           <MapPin className="absolute left-4 top-3.5 w-4 h-4 text-white/30" />
                           <textarea
-                            rows={3}
+                            rows={2}
                             placeholder="Apartment, Street Name, Metro City, Pin"
                             value={address}
                             onChange={(e) => setAddress(e.target.value)}
@@ -315,20 +345,141 @@ export default function CartDrawer({
                         )}
                       </div>
 
-                      {/* Payment info mock alert */}
-                      <div className="bg-white/5 border border-white/5 rounded-2xl p-4 flex gap-3.5">
-                        <div className="w-8 h-8 rounded-lg bg-orange-500/20 text-orange-400 shrink-0 flex items-center justify-center">
-                          <CreditCard className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <h5 className="text-xs font-black uppercase tracking-widest text-white mb-1">
-                            CASH ON DELIVERY
-                          </h5>
-                          <p className="text-[10px] text-white/40 leading-relaxed uppercase tracking-wider">
-                            Guaranteed direct contact-free shipping. Pay via cash or UPI upon overnight arrival.
-                          </p>
+                      {/* Payment Method Selector Tab bar */}
+                      <div className="flex flex-col gap-2">
+                        <label className="text-xs font-bold uppercase tracking-widest text-white/60 font-mono">
+                          Payment Method
+                        </label>
+                        <div className="grid grid-cols-3 gap-2 bg-black/40 border border-white/10 rounded-2xl p-1">
+                          <button
+                            type="button"
+                            onClick={() => setPaymentMethod("card")}
+                            className={`py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex flex-col items-center gap-1 transition-all cursor-pointer ${
+                              paymentMethod === "card" ? "bg-white text-black" : "text-white/60 hover:text-white"
+                            }`}
+                          >
+                            <CreditCard className="w-4 h-4" />
+                            Card
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setPaymentMethod("upi")}
+                            className={`py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex flex-col items-center gap-1 transition-all cursor-pointer ${
+                              paymentMethod === "upi" ? "bg-white text-black" : "text-white/60 hover:text-white"
+                            }`}
+                          >
+                            <Smartphone className="w-4 h-4" />
+                            UPI
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setPaymentMethod("cod")}
+                            className={`py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex flex-col items-center gap-1 transition-all cursor-pointer ${
+                              paymentMethod === "cod" ? "bg-white text-black" : "text-white/60 hover:text-white"
+                            }`}
+                          >
+                            <Coins className="w-4 h-4" />
+                            COD
+                          </button>
                         </div>
                       </div>
+
+                      {/* Dynamic Payment Input Section */}
+                      <AnimatePresence mode="wait">
+                        {paymentMethod === "card" && (
+                          <motion.div
+                            key="payment-card"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            className="space-y-3 p-4 bg-white/5 border border-white/5 rounded-2xl"
+                          >
+                            <div className="flex flex-col gap-1.5">
+                              <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest font-mono">Card Number</span>
+                              <input
+                                type="text"
+                                maxLength={16}
+                                placeholder="1234 5678 1234 5678"
+                                value={cardNumber}
+                                onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, ""))}
+                                className="w-full bg-black/40 border border-white/10 focus:border-white/30 rounded-xl py-2 px-3 text-xs text-white placeholder-white/20 outline-none font-mono"
+                              />
+                              {errors.cardNumber && <span className="text-[9px] font-mono text-red-400 uppercase tracking-widest">{errors.cardNumber}</span>}
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="flex flex-col gap-1.5">
+                                <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest font-mono">Expiry</span>
+                                <input
+                                  type="text"
+                                  maxLength={5}
+                                  placeholder="MM/YY"
+                                  value={cardExpiry}
+                                  onChange={(e) => setCardExpiry(e.target.value)}
+                                  className="w-full bg-black/40 border border-white/10 focus:border-white/30 rounded-xl py-2 px-3 text-xs text-white placeholder-white/20 outline-none font-mono"
+                                />
+                                {errors.cardExpiry && <span className="text-[9px] font-mono text-red-400 uppercase tracking-widest">{errors.cardExpiry}</span>}
+                              </div>
+                              <div className="flex flex-col gap-1.5">
+                                <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest font-mono">CVV</span>
+                                <input
+                                  type="password"
+                                  maxLength={3}
+                                  placeholder="123"
+                                  value={cardCvv}
+                                  onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, ""))}
+                                  className="w-full bg-black/40 border border-white/10 focus:border-white/30 rounded-xl py-2 px-3 text-xs text-white placeholder-white/20 outline-none font-mono"
+                                />
+                                {errors.cardCvv && <span className="text-[9px] font-mono text-red-400 uppercase tracking-widest">{errors.cardCvv}</span>}
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+
+                        {paymentMethod === "upi" && (
+                          <motion.div
+                            key="payment-upi"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            className="p-4 bg-white/5 border border-white/5 rounded-2xl flex flex-col gap-2"
+                          >
+                            <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest font-mono">UPI ID</span>
+                            <input
+                              type="text"
+                              placeholder="pranav@upi"
+                              value={upiId}
+                              onChange={(e) => setUpiId(e.target.value)}
+                              className="w-full bg-black/40 border border-white/10 focus:border-white/30 rounded-xl py-2.5 px-3.5 text-xs text-white placeholder-white/20 outline-none font-mono"
+                            />
+                            {errors.upiId && <span className="text-[9px] font-mono text-red-400 uppercase tracking-widest">{errors.upiId}</span>}
+                            <span className="text-[9px] text-white/30 leading-relaxed uppercase tracking-wider font-mono">
+                              A payment request will be sent to your UPI app upon order submit.
+                            </span>
+                          </motion.div>
+                        )}
+
+                        {paymentMethod === "cod" && (
+                          <motion.div
+                            key="payment-cod"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            className="bg-white/5 border border-white/5 rounded-2xl p-4 flex gap-3.5"
+                          >
+                            <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 shrink-0 flex items-center justify-center">
+                              <Coins className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <h5 className="text-xs font-black uppercase tracking-widest text-white mb-1">
+                                Pay on Delivery
+                              </h5>
+                              <p className="text-[9px] text-white/40 leading-relaxed uppercase tracking-wider">
+                                Direct contactless shipping. Pay via cash, card, or UPI scanner upon instant arrival.
+                              </p>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
 
                       <button
                         type="submit"
@@ -364,7 +515,7 @@ export default function CartDrawer({
                       Thank You,<br />{name.split(" ")[0]}!
                     </h3>
                     <p className="text-xs text-white/50 leading-relaxed uppercase tracking-wide max-w-xs mb-8">
-                      Your cold-pressed health matrix is being pressed fresh today. Insulated thermal delivery scheduled within 24 hours.
+                      Your cold-pressed health matrix has been prepared fresh. Instant delivery in progress—arriving at your doorstep shortly!
                     </p>
 
                     <button
@@ -379,7 +530,7 @@ export default function CartDrawer({
               </AnimatePresence>
             </div>
 
-            {/* Footer / Total Panel (Only visible in cart state if cart has items) */}
+            {/* Footer / Total Panel */}
             {step === "cart" && cartItems.length > 0 && (
               <div className="p-6 border-t border-white/5 bg-black/40 backdrop-blur-md shrink-0">
                 <div className="space-y-3 mb-6">
@@ -389,7 +540,7 @@ export default function CartDrawer({
                   </div>
                   
                   <div className="flex justify-between items-center text-xs font-mono">
-                    <span className="text-white/40 uppercase tracking-widest">Insulated Delivery</span>
+                    <span className="text-white/40 uppercase tracking-widest">Instant Delivery</span>
                     <span className="text-white font-bold">
                       {deliveryFee === 0 ? (
                         <span className="text-green-400 uppercase tracking-widest">Free</span>

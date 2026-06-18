@@ -382,7 +382,7 @@ export default function Home() {
                       </h3>
                       
                       <p className="text-white/60 font-light leading-relaxed max-w-xl text-sm md:text-base">
-                        Unlock elite health benefits. Cold pressed fresh on the day of delivery, packaged in thermal insulated coolers, and shipped overnight.
+                        Unlock elite health benefits. Cold pressed fresh on order, packaged in thermal insulated coolers, and delivered instantly to your door.
                       </p>
                     </div>
 
