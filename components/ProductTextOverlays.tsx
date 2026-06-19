@@ -410,7 +410,7 @@ export default function ProductTextOverlays({
             04 / ELITE PURITY MATRICES
           </span>
           <h2 className="text-4xl md:text-6xl font-black text-white leading-tight uppercase tracking-tight mb-8">
-            THE TASTE OF<br />REAL FRUIT
+            THE TASTE OF<br />{product.id === "chocolate" ? "REAL CHOCOLATE" : "REAL FRUIT"}
           </h2>
 
           <div className="flex flex-col gap-5">
