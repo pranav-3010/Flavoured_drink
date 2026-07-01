@@ -21,6 +21,28 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${outfit.variable} antialiased scroll-smooth`}>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                if (window.innerWidth < 1024) {
+                  var metas = document.getElementsByTagName('meta');
+                  for (var i = 0; i < metas.length; i++) {
+                    if (metas[i].name === 'viewport') {
+                      metas[i].parentNode.removeChild(metas[i]);
+                    }
+                  }
+                  var meta = document.createElement('meta');
+                  meta.name = 'viewport';
+                  meta.content = 'width=1280, initial-scale=' + (window.screen.width / 1280) + ', maximum-scale=1.0, user-scalable=yes';
+                  document.head.appendChild(meta);
+                }
+              })();
+            `,
+          }}
+        />
+      </head>
       <body className="min-h-screen text-white">
         {children}
       </body>
